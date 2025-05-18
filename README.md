@@ -3,7 +3,10 @@
 ![Banner](https://img.shields.io/badge/SHCH-v1.0.0--demo-purple)
 ![Go](https://img.shields.io/badge/Go-1.18+-blue)
 ![Security](https://img.shields.io/badge/Security-Headers-green)
-![License](https://img.shields.io/badge/License-Apache-2.0)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue)
+![HTTP](https://img.shields.io/badge/Protocol-HTTP/1.1%20%7C%202.0-orange)
+![Pentest](https://img.shields.io/badge/Purpose-Pentesting-critical)
+
 
 **SEC-HEADERS-CHECK** é uma ferramenta de linha de comando escrita em Go para verificar a presença e a configuração de cabeçalhos HTTP de segurança em websites. Ela automatiza o processo de verificação de cabeçalhos HTTP importantes que podem mitigar diversos tipos de ataques web.
 
