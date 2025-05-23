@@ -187,6 +187,17 @@ A ferramenta fornece uma pontuação de segurança baseada nos cabeçalhos encon
 - **30-49**: Configuração insuficiente, risco de segurança aumentado
 - **0-29**: Configuração crítica, necessita intervenção imediata
 
+### Prova de Conceito Funcional
+
+O núcleo mínimo da funcionalidade está no seguinte fluxo:
+1. Input do usuário → Domínio, IP ou URL;
+2. Validação → Regex para domínio/IP ou verificação de prefixo HTTP/HTTPS;
+3. Requisição GET → Obtenção dos cabeçalhos da resposta;
+4. Comparação → Verifica se os cabeçalhos esperados estão presentes;
+5. Output → Mostra presentes/ausentes, pontuação e cabeçalhos extras.
+
+Exemplo de Execução
+
 ## Licença
 
 Este projeto está licenciado sob a Apache 2.0 - veja o arquivo LICENSE para detalhes.
