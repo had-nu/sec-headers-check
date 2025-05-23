@@ -190,13 +190,32 @@ A ferramenta fornece uma pontuação de segurança baseada nos cabeçalhos encon
 ### Prova de Conceito Funcional
 
 O núcleo mínimo da funcionalidade está no seguinte fluxo:
-1. Input do usuário → Domínio, IP ou URL;
-2. Validação → Regex para domínio/IP ou verificação de prefixo HTTP/HTTPS;
-3. Requisição GET → Obtenção dos cabeçalhos da resposta;
-4. Comparação → Verifica se os cabeçalhos esperados estão presentes;
-5. Output → Mostra presentes/ausentes, pontuação e cabeçalhos extras.
+1. **Input do usuário** → Domínio, IP ou URL;
+2. **Validação** → Regex para domínio/IP ou verificação de prefixo HTTP/HTTPS;
+3. **Requisição GET** → Obtenção dos cabeçalhos da resposta;
+4. **Comparação** → Verifica se os cabeçalhos esperados estão presentes;
+5. **Output** → Mostra presentes/ausentes, pontuação e cabeçalhos extras.
 
-Exemplo de Execução
+Exemplo de Execução:
+```
+> https://example.com
+
+[*] Conectando a https://example.com...
+[✓] Conexão estabelecida (HTTP 200)
+
+[*] Analisando cabeçalhos de segurança...
+
+CABEÇALHO                          ESTADO          SEVERIDADE VALOR
+Strict-Transport-Security         PRESENTE        Critical   max-age=31536000
+Content-Security-Policy           AUSENTE         Critical   -
+X-Content-Type-Options            PRESENTE        High       nosniff
+
+[*] Resumo da análise:
+Cabeçalhos presentes: 2 (66.7%)
+Cabeçalhos ausentes: 1 (33.3%)
+Pontuação de segurança: 66/100 👍 Bom
+
+```
 
 ## Licença
 
