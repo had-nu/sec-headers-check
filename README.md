@@ -77,7 +77,48 @@ A ferramenta verifica a presença e configuração dos seguintes cabeçalhos HTT
 | **Server** | Baixo | Informações sobre o servidor web | Pode expor versões vulneráveis se configurado incorretamente |
 | **X-Powered-By** | Baixo | Informações sobre a tecnologia do servidor | Pode expor versões vulneráveis se configurado incorretamente |
 
-## Por Que Estes Cabeçalhos São Importantes
+## Diagrama da Arquitetura Interna
+```
+┌──────────────────────────┐
+│        Usuário CLI       │
+└────────────┬─────────────┘
+             │
+             ▼
+┌──────────────────────────┐
+│   Validação do Alvo      │
+│ isValidURL/IP/Domain     │
+└────────────┬─────────────┘
+             ▼
+┌──────────────────────────┐
+│ Preparação da Requisição │
+│ http.NewRequest + Headers│
+└────────────┬─────────────┘
+             ▼
+┌──────────────────────────┐
+│ Envio e Recebimento HTTP │
+│ client.Do(req)           │
+└────────────┬─────────────┘
+             ▼
+┌─────────────────────────────┐
+│  Comparação com headers     │◄────────────┐
+│  da lista `securityHeaders` │             │
+└────────────┬────────────────┘             │
+             ▼                              │
+┌─────────────────────────────┐             │
+│ Pontuação `calculateScore`  │             │
+└────────────┬────────────────┘             │
+             ▼                              │
+┌─────────────────────────────┐             │
+│  Impressão e resumo final   │             │
+└─────────────────────────────┘             │
+                                            │
+┌───────────────────────────────────────────┘
+│          Lista `securityHeaders` (dados estáticos)
+└────────────────────────────────────────────
+
+```
+
+## Por que estes cabeçalhos são importantes?
 
 ### Cabeçalhos Críticos
 
