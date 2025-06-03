@@ -39,8 +39,8 @@ var endpoints = []string{
 	"/api/me/self",
 }
 
-// Lista curada de cabeçalhos críticos de segurança
-var criticalSecurityHeaders = []SecurityHeader{
+// Lista de cabeçalhos críticos de segurança
+var securityHeaders = []SecurityHeader{
     {
         Name:        "Strict-Transport-Security",
         Description: "Força conexões HTTPS e previne downgrade attacks",
@@ -106,7 +106,7 @@ const (
 
 // Função para exibir o banner da aplicação
 func displayBanner() {
-	fmt.Println(colorPurple + colorBold + `
+	fmt.Println(colorYellow + colorBold + `
  ███████╗███████╗ ██████╗      ██╗  ██╗███████╗ █████╗ ██████╗ ███████╗██████╗ ███████╗
  ██╔════╝██╔════╝██╔════╝      ██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝
  ███████╗█████╗  ██║     █████╗███████║█████╗  ███████║██║  ██║█████╗  ██████╔╝███████╗
@@ -114,7 +114,7 @@ func displayBanner() {
  ███████║███████╗╚██████╗      ██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║███████║
  ╚══════╝╚══════╝ ╚═════╝      ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝` + colorReset)
 	fmt.Println(colorYellow + colorBold + "              Security Headers Checker v" + version + colorReset)
-	fmt.Println(colorCyan + "═══════════════════════════════════════════════════════════════════════════════" + colorReset)
+	fmt.Println(colorCyan + "════════════════════════════════════════════════════════════════════════════════════════" + colorReset)
 }
 
 // Valida se uma entrada é um domínio válido
@@ -139,7 +139,14 @@ func checkEndpoint(baseURL, endpoint string) EndpointResult {
 	fullURL := strings.TrimRight(baseURL, "/") + endpoint
 	
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 15 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			// Permitir até 3 redirecionamentos
+			if len(via) >= 3 {
+				return fmt.Errorf("muitos redirecionamentos")
+			}
+			return nil
+		},
 	}
 
 	req, err := http.NewRequest("GET", fullURL, nil)
@@ -152,6 +159,11 @@ func checkEndpoint(baseURL, endpoint string) EndpointResult {
 
 	// Simula um navegador para obter respostas mais realistas
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -208,7 +220,16 @@ func checkHeaders(target string) {
 		}
 
 		fmt.Printf("%s[*] Análise detalhada: %s%s%s\n", colorCyan, colorBold, result.Path, colorReset)
+		fmt.Printf("%s[*] URL completa: %s%s\n", colorBlue, target+result.Path, colorReset)
+		fmt.Printf("%s[*] Status: HTTP %d%s\n", colorBlue, result.StatusCode, colorReset)
 		fmt.Printf("%s%s%s\n", colorCyan, strings.Repeat("═", 100), colorReset)
+
+		// DEBUG: Mostrar todos os cabeçalhos recebidos
+		fmt.Printf("%s[DEBUG] Todos os cabeçalhos recebidos:%s\n", colorYellow, colorReset)
+		for name, values := range result.Headers {
+			fmt.Printf("  %s: %s\n", name, strings.Join(values, ", "))
+		}
+		fmt.Printf("%s%s%s\n", colorYellow, strings.Repeat("─", 50), colorReset)
 
 		// Contadores para resumo
 		var present, missing, total int
