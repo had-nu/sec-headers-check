@@ -39,8 +39,8 @@ var endpoints = []string{
 	"/api/me/self",
 }
 
-// Lista curada de cabeçalhos críticos de segurança
-var criticalSecurityHeaders = []SecurityHeader{
+// Lista de cabeçalhos críticos de segurança
+var securityHeaders = []SecurityHeader{
     {
         Name:        "Strict-Transport-Security",
         Description: "Força conexões HTTPS e previne downgrade attacks",
@@ -106,7 +106,7 @@ const (
 
 // Função para exibir o banner da aplicação
 func displayBanner() {
-	fmt.Println(colorPurple + colorBold + `
+	fmt.Println(colorYellow + colorBold + `
  ███████╗███████╗ ██████╗      ██╗  ██╗███████╗ █████╗ ██████╗ ███████╗██████╗ ███████╗
  ██╔════╝██╔════╝██╔════╝      ██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝
  ███████╗█████╗  ██║     █████╗███████║█████╗  ███████║██║  ██║█████╗  ██████╔╝███████╗
@@ -114,7 +114,7 @@ func displayBanner() {
  ███████║███████╗╚██████╗      ██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║███████║
  ╚══════╝╚══════╝ ╚═════╝      ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝` + colorReset)
 	fmt.Println(colorYellow + colorBold + "              Security Headers Checker v" + version + colorReset)
-	fmt.Println(colorCyan + "═══════════════════════════════════════════════════════════════════════════════" + colorReset)
+	fmt.Println(colorCyan + "════════════════════════════════════════════════════════════════════════════════════════" + colorReset)
 }
 
 // Valida se uma entrada é um domínio válido
@@ -137,12 +137,25 @@ func isValidURL(url string) bool {
 // Faz requisição para um endpoint específico
 func checkEndpoint(baseURL, endpoint string) EndpointResult {
 	fullURL := strings.TrimRight(baseURL, "/") + endpoint
-	
+
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 15 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 3 {
+				return fmt.Errorf("muitos redirecionamentos")
+			}
+			return nil
+		},
 	}
 
-	req, err := http.NewRequest("GET", fullURL, nil)
+	method := "GET"
+	if endpoint == "/auth/login" {
+		method = "POST"
+	} else if endpoint == "/api/me/self" {
+		method = "PUT"
+	}
+
+	req, err := http.NewRequest(method, fullURL, nil)
 	if err != nil {
 		return EndpointResult{
 			Path:  endpoint,
@@ -150,8 +163,12 @@ func checkEndpoint(baseURL, endpoint string) EndpointResult {
 		}
 	}
 
-	// Simula um navegador para obter respostas mais realistas
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -208,7 +225,16 @@ func checkHeaders(target string) {
 		}
 
 		fmt.Printf("%s[*] Análise detalhada: %s%s%s\n", colorCyan, colorBold, result.Path, colorReset)
+		fmt.Printf("%s[*] URL completa: %s%s\n", colorBlue, target+result.Path, colorReset)
+		fmt.Printf("%s[*] Status: HTTP %d%s\n", colorBlue, result.StatusCode, colorReset)
 		fmt.Printf("%s%s%s\n", colorCyan, strings.Repeat("═", 100), colorReset)
+
+		// DEBUG: Mostrar todos os cabeçalhos recebidos
+		fmt.Printf("%s[DEBUG] Todos os cabeçalhos recebidos:%s\n", colorYellow, colorReset)
+		for name, values := range result.Headers {
+			fmt.Printf("  %s: %s\n", name, strings.Join(values, ", "))
+		}
+		fmt.Printf("%s%s%s\n", colorYellow, strings.Repeat("─", 50), colorReset)
 
 		// Contadores para resumo
 		var present, missing, total int
@@ -291,46 +317,70 @@ func displayOverallSummary(results []EndpointResult) {
 
 // Analisa a consistência dos cabeçalhos entre endpoints
 func analyzeConsistency(results []EndpointResult) {
-	headerPresence := make(map[string][]bool)
-	
-	// Coletar presença de cada cabeçalho em cada endpoint
+	headerPresence := make(map[string]map[string]bool)
+
+	// Inicializa mapa para cada cabeçalho
 	for _, header := range securityHeaders {
+		headerPresence[header.Name] = make(map[string]bool)
 		for _, result := range results {
 			if result.Error == nil {
-				hasHeader := result.Headers.Get(header.Name) != ""
-				headerPresence[header.Name] = append(headerPresence[header.Name], hasHeader)
+				headerValue := result.Headers.Get(header.Name)
+				headerPresence[header.Name][result.Path] = headerValue != ""
 			}
 		}
 	}
 
-	// Identificar inconsistências
-	inconsistentHeaders := []string{}
-	for headerName, presence := range headerPresence {
-		if len(presence) > 1 {
-			first := presence[0]
-			consistent := true
-			for _, p := range presence[1:] {
-				if p != first {
-					consistent = false
-					break
+	// Construção da tabela estilo "Análise de consistência dos cabeçalhos de segurança"
+	fmt.Printf("\n%s[+] Tabela de consistência dos cabeçalhos de segurança:%s\n", colorCyan, colorReset)
+	fmt.Printf("%-35s", "CABEÇALHO")
+	for _, result := range results {
+		if result.Error == nil {
+			fmt.Printf(" %-15s", result.Path)
+		}
+	}
+	fmt.Printf("\n%s%s%s\n", colorCyan, strings.Repeat("─", 100), colorReset)
+
+	for _, header := range securityHeaders {
+		fmt.Printf("%-35s", header.Name)
+		for _, result := range results {
+			if result.Error == nil {
+				if headerPresence[header.Name][result.Path] {
+					fmt.Printf(" %s%-15s%s", colorGreen, "PRESENTE", colorReset)
+				} else {
+					fmt.Printf(" %s%-15s%s", colorRed, "AUSENTE", colorReset)
 				}
 			}
-			if !consistent {
-				inconsistentHeaders = append(inconsistentHeaders, headerName)
+		}
+		fmt.Println()
+	}
+
+	// Lista de cabeçalhos inconsistentes
+	inconsistentHeaders := []string{}
+	for headerName, presenceMap := range headerPresence {
+		var lastValue *bool
+		inconsistent := false
+		for _, present := range presenceMap {
+			if lastValue == nil {
+				v := present
+				lastValue = &v
+			} else if present != *lastValue {
+				inconsistent = true
+				break
 			}
+		}
+		if inconsistent {
+			inconsistentHeaders = append(inconsistentHeaders, headerName)
 		}
 	}
 
 	if len(inconsistentHeaders) > 0 {
-		fmt.Printf("%s[!]  Cabeçalhos inconsistentes encontrados:%s\n", colorYellow, colorReset)
+		fmt.Printf("\n%s[!] Cabeçalhos inconsistentes encontrados:%s\n", colorYellow, colorReset)
 		for _, header := range inconsistentHeaders {
 			fmt.Printf("   • %s\n", header)
 		}
-		fmt.Printf("%sRecomendação: Verificar configuração do servidor para garantir consistência.%s\n", 
-			colorYellow, colorReset)
+		fmt.Printf("%sRecomendação: Aplicar cabeçalhos de forma consistente em todas as rotas, incluindo erros e redirecionamentos.%s\n", colorYellow, colorReset)
 	} else {
-		fmt.Printf("%s✓ Configurações consistentes entre todos os endpoints.%s\n", 
-			colorGreen, colorReset)
+		fmt.Printf("%s✓ Todos os cabeçalhos avaliados estão presentes ou ausentes de forma consistente.%s\n", colorGreen, colorReset)
 	}
 }
 
