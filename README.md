@@ -268,4 +268,4 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar
 
 ---
 
-Desenvolvido com ❤️ para a comunidade de segurança
+Desenvolvido para a comunidade de segurança
