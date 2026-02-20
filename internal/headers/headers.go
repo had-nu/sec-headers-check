@@ -1,0 +1,89 @@
+package headers
+
+type Endpoint struct {
+	Path   string
+	Method string
+}
+
+type SecurityHeader struct {
+	Name        string
+	Description string
+	Expected    string
+	Severity    string // Critical | High | Medium | Low
+	Points      int
+}
+
+var Endpoints = []Endpoint{
+	{Path: "/", Method: "GET"},
+	{Path: "/login", Method: "GET"},
+	{Path: "/auth/login", Method: "POST"},
+	{Path: "/me/settings", Method: "GET"},
+	{Path: "/api/me/self", Method: "GET"},
+}
+
+var SecurityHeaders = []SecurityHeader{
+	{
+		Name:        "Strict-Transport-Security",
+		Description: "Forces HTTPS and prevents downgrade attacks",
+		Expected:    "max-age=31536000; includeSubDomains",
+		Severity:    "Critical",
+		Points:      20,
+	},
+	{
+		Name:        "Content-Security-Policy",
+		Description: "Prevents XSS, injection and data exfiltration",
+		Expected:    "default-src 'self'; script-src 'self'",
+		Severity:    "Critical",
+		Points:      20,
+	},
+	{
+		Name:        "X-Frame-Options",
+		Description: "Prevents clickjacking and UI redressing",
+		Expected:    "DENY",
+		Severity:    "High",
+		Points:      15,
+	},
+	{
+		Name:        "X-Content-Type-Options",
+		Description: "Prevents MIME sniffing attacks",
+		Expected:    "nosniff",
+		Severity:    "High",
+		Points:      15,
+	},
+	{
+		Name:        "Referrer-Policy",
+		Description: "Controls information leakage via Referer header",
+		Expected:    "strict-origin-when-cross-origin",
+		Severity:    "Medium",
+		Points:      10,
+	},
+	{
+		Name:        "Cache-Control",
+		Description: "Prevents caching of sensitive responses",
+		Expected:    "no-store, no-cache, must-revalidate",
+		Severity:    "Medium",
+		Points:      10,
+	},
+	{
+		Name:        "X-XSS-Protection",
+		Description: "Legacy browser XSS filter; CSP is the modern replacement",
+		Expected:    "1; mode=block",
+		Severity:    "Low",
+		Points:      5,
+	},
+	{
+		Name:        "Server",
+		Description: "Information disclosure via server banner",
+		Expected:    "absent or generic value",
+		Severity:    "Low",
+		Points:      5,
+	},
+}
+
+var MaxPossibleScore = func() int {
+	total := 0
+	for _, h := range SecurityHeaders {
+		total += h.Points
+	}
+	return total
+}()
