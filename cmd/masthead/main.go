@@ -11,9 +11,9 @@ import (
 	"regexp"
 	"strings"
 
-	"sec-headers-check/internal/checker"
-	"sec-headers-check/internal/headers"
-	"sec-headers-check/internal/output"
+	"github.com/had-nu/sec-headers-check/internal/checker"
+	"github.com/had-nu/sec-headers-check/internal/headers"
+	"github.com/had-nu/sec-headers-check/internal/output"
 )
 
 const version = "2.0.0"

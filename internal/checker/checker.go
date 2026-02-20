@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"sec-headers-check/internal/headers"
+	"github.com/had-nu/sec-headers-check/internal/headers"
 )
 
 const (
@@ -71,7 +71,7 @@ func checkEndpoint(ctx context.Context, client *http.Client, baseURL string, ep 
 		Method:     ep.Method,
 		StatusCode: resp.StatusCode,
 		Headers:    resp.Header,
-		Score:      ScoreHeaders(resp.Header),
+		// Score:      ScoreHeaders(resp.Header),
 	}
 }
 

@@ -3,8 +3,8 @@ package output
 import (
 	"time"
 
-	"sec-headers-check/internal/checker"
-	"sec-headers-check/internal/headers"
+	"github.com/had-nu/sec-headers-check/internal/checker"
+	"github.com/had-nu/sec-headers-check/internal/headers"
 )
 
 // HeaderResult is the evaluated state of one security header for one endpoint.
