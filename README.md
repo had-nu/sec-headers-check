@@ -1,271 +1,274 @@
 # SEC-HEADERS-CHECK
 
-![Banner](https://img.shields.io/badge/SHCH-v1.0.0--demo-purple)
+![Banner](https://img.shields.io/badge/SHCH-v2.0.0--demo-purple)
 ![Go](https://img.shields.io/badge/Go-1.18+-blue)
 ![Security](https://img.shields.io/badge/Security-Headers-green)
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue)
 ![HTTP](https://img.shields.io/badge/Protocol-HTTP/1.1%20%7C%202.0-orange)
 ![Pentest](https://img.shields.io/badge/Purpose-Pentesting-critical)
 
+**SEC-HEADERS-CHECK** is a command-line tool written in Go to verify the presence and configuration of HTTP security headers on websites. It automates the process of checking important HTTP headers that can mitigate various types of web attacks.
 
-**SEC-HEADERS-CHECK** é uma ferramenta de linha de comando escrita em Go para verificar a presença e a configuração de cabeçalhos HTTP de segurança em websites. Ela automatiza o processo de verificação de cabeçalhos HTTP importantes que podem mitigar diversos tipos de ataques web.
+## Features
 
-## Funcionalidades
+- Verification of 16 critical HTTP security headers
+- Support for concurrent endpoint testing
+- Supports domains, full URLs, or IP address inputs
+- Colourful and user-friendly terminal interface
+- Detailed output with security scoring and consistency checks
+- Output formats: terminal, JSON, and CSV
+- Auto-detection of HTTP/HTTPS protocols
+- Identification of headers that may reveal sensitive information
 
-- Verificação de 16 cabeçalhos de segurança HTTP importantes
-- Suporte para entrada de domínio, URL completa ou endereço IP
-- Interface colorida e amigável no terminal
-- Análise detalhada com pontuação de segurança
-- Detecção automática do protocolo (HTTP/HTTPS)
-- Exibição de cabeçalhos adicionais que podem revelar informações sensíveis
+## Installation
 
-## Instalação
+### Prerequisites
 
-### Pré-requisitos
+- Go 1.18 or higher
 
-- Go 1.18 ou superior
-
-### Instalando
+### Compiling
 
 ```bash
-# Clone o repositório
+# Clone the repository
 git clone https://github.com/had-nu/sec-headers-check.git
 cd sec-headers-check
 
-# Construa o binário
-go build -o sec-headers-check main.go
+# Download dependencies (if applicable)
+go mod tidy
 
-# Execute a ferramenta
+# Build the binary
+go build -o sec-headers-check ./cmd/masthead
+
+# Run the tool
 ./sec-headers-check
 ```
 
-## Uso
+## Usage
 
-Execute o binário e siga as instruções na tela:
+Run the binary and follow the on-screen prompts, or use the flags to automate testing:
 
 ```bash
+# Interactive mode
 ./sec-headers-check
+
+# Command-line flags
+./sec-headers-check -target example.com
+./sec-headers-check -target example.com -output json
+./sec-headers-check -target example.com -output csv -out report.csv
 ```
 
-Quando solicitado, insira o alvo que deseja verificar. Pode ser:
-- Um domínio simples (exemplo.com)
-- Uma URL completa (https://exemplo.com)
-- Um endereço IP (192.168.1.1)
+### Available Flags:
+- `-target`: The target domain, IP, or full URL to scan. Falls back to interactive prompt if omitted.
+- `-output`: The report output format. Acceptable values are `terminal` (default), `json`, or `csv`.
+- `-out`: Write the output to a specified file instead of stdout (e.g. `-out results.json`).
 
-A ferramenta detectará automaticamente o formato da entrada e adicionará o protocolo https:// se necessário.
+The tool will automatically detect your input format and append the `https://` protocol if missing.
 
-## Cabeçalhos Verificados
+## Verified Headers
 
-A ferramenta verifica a presença e configuração dos seguintes cabeçalhos HTTP de segurança:
+The application verifies the presence and configuration of the following HTTP security headers:
 
-| Cabeçalho | Severidade | Descrição | Proteção |
+| Header | Severity | Description | Protection |
 |-----------|------------|-----------|----------|
-| **Strict-Transport-Security** | Crítico | Define que o site só deve ser acessado via HTTPS | Protege contra ataques de downgrade e MITM (Man-in-the-Middle) |
-| **Content-Security-Policy** | Crítico | Define origens confiáveis para recursos | Mitiga ataques XSS e injeção de dados |
-| **X-Content-Type-Options** | Alto | Evita que o navegador faça MIME sniffing | Previne ataques baseados em MIME sniffing |
-| **X-Frame-Options** | Alto | Controla se a página pode ser exibida em frames | Previne ataques de clickjacking |
-| **X-XSS-Protection** | Médio | Ativa filtros XSS do navegador | Camada adicional de proteção contra XSS |
-| **Referrer-Policy** | Médio | Controla informações de referência enviadas | Protege a privacidade do usuário e previne vazamento de informações |
-| **Permissions-Policy** | Médio | Controla recursos do navegador permitidos | Limita recursos como câmera, microfone e localização |
-| **Cache-Control** | Médio | Controla como o conteúdo é armazenado em cache | Previne que dados sensíveis sejam cacheados |
-| **Clear-Site-Data** | Baixo | Limpa dados do site no navegador | Útil para logout e proteção de privacidade |
-| **Cross-Origin-Embedder-Policy** | Baixo | Controla recursos incorporados cross-origin | Parte da proteção COOP+COEP |
-| **Cross-Origin-Opener-Policy** | Baixo | Isola contextos de navegação | Protege contra ataques baseados em janela |
-| **Cross-Origin-Resource-Policy** | Baixo | Protege recursos de serem carregados cross-origin | Previne vazamentos de informações entre origens |
-| **Access-Control-Allow-Origin** | Médio | Controla o CORS | Previne acessos não autorizados a recursos |
-| **Feature-Policy** (legado) | Baixo | Controla recursos permitidos (versão legada) | Similar ao Permissions-Policy |
-| **Server** | Baixo | Informações sobre o servidor web | Pode expor versões vulneráveis se configurado incorretamente |
-| **X-Powered-By** | Baixo | Informações sobre a tecnologia do servidor | Pode expor versões vulneráveis se configurado incorretamente |
+| **Strict-Transport-Security** | Critical | Enforces HTTPS connections | Protects against protocol downgrade and MITM attacks |
+| **Content-Security-Policy** | Critical | Defines trusted sources for resources | Mitigates XSS and data injection |
+| **X-Content-Type-Options** | High | Prevents MIME sniffing | Stops MIME-sniffing based attacks |
+| **X-Frame-Options** | High | Controls whether the page can be framed | Prevents clickjacking |
+| **X-XSS-Protection** | Medium | Activates browser XSS filters | Additional layer of XSS protection |
+| **Referrer-Policy** | Medium | Controls the referrer information sent | Protects user privacy and stops information leakage |
+| **Permissions-Policy** | Medium | Controls allowed browser features | Limits hardware/software features like camera or geolocation |
+| **Cache-Control** | Medium | Controls content caching | Stops sensitive data from being cached |
+| **Clear-Site-Data** | Low | Clears site data from the browser | Useful for logout and privacy protection |
+| **Cross-Origin-Embedder-Policy** | Low | Controls cross-origin embedded resources | Part of COOP+COEP protection |
+| **Cross-Origin-Opener-Policy** | Low | Isolates browsing contexts | Protects against window-based attacks |
+| **Cross-Origin-Resource-Policy** | Low | Protects resources from being loaded cross-origin | Prevents cross-origin information leaks |
+| **Access-Control-Allow-Origin** | Medium | Controls CORS | Prevents unauthorised access to resources |
+| **Feature-Policy** (legacy) | Low | Controls allowed features (legacy) | Similar to Permissions-Policy |
+| **Server** | Low | Identifies the web server software | May expose vulnerable versions if overly descriptive |
+| **X-Powered-By** | Low | Identifies backend technologies | May expose vulnerable versions if present |
 
-## Diagrama da Arquitetura Interna
+## Internal Architecture Diagram
+
 ```
 ┌──────────────────────────┐
-│        Usuário CLI       │
+│        CLI User          │
 └────────────┬─────────────┘
              │
              ▼
 ┌──────────────────────────┐
-│   Validação do Alvo      │
-│ isValidURL/IP/Domain     │
+│     Target Validation    │
+│   isValidURL/IP/Domain   │
 └────────────┬─────────────┘
              ▼
 ┌──────────────────────────┐
-│ Preparação da Requisição │
-│ http.NewRequest + Headers│
+│ Concurrent Verification  │
+│   Multiple Endpoints     │
 └────────────┬─────────────┘
              ▼
 ┌──────────────────────────┐
-│ Envio e Recebimento HTTP │
-│ client.Do(req)           │
+│  Request Preparation &   │
+│ HTTP Receive / Send      │
 └────────────┬─────────────┘
              ▼
 ┌─────────────────────────────┐
-│  Comparação com headers     │◄────────────┐
-│  da lista `securityHeaders` │             │
+│ Comparison vs Static List   │◄────────────┐
+│      `securityHeaders`      │             │
 └────────────┬────────────────┘             │
              ▼                              │
 ┌─────────────────────────────┐             │
-│ Pontuação `calculateScore`  │             │
+│ Score & Analysis generation │             │
+│ `ScoreHeaders` / `Build`    │             │
 └────────────┬────────────────┘             │
              ▼                              │
 ┌─────────────────────────────┐             │
-│  Impressão e resumo final   │             │
+│   Report Output Formatting  │             │
+│ Terminal / JSON / CSV       │             │
 └─────────────────────────────┘             │
                                             │
 ┌───────────────────────────────────────────┘
-│          Lista `securityHeaders` (dados estáticos)
+│       `securityHeaders` Static List
 └────────────────────────────────────────────
-
 ```
 
-## Por que estes cabeçalhos são importantes?
+## Why are these headers important?
 
-### Cabeçalhos Críticos
+### Critical Headers
 
 1. **Strict-Transport-Security (HSTS)**
-   - **O que faz:** Força o navegador a usar HTTPS em vez de HTTP para comunicações futuras
-   - **Proteção contra:** Ataques de downgrade e interceptação de tráfego
-   - **Configuração recomendada:** `max-age=31536000; includeSubDomains; preload`
-   - **Impacto da ausência:** Vulnerabilidade a ataques MITM, possibilidade de interceptação de dados sensíveis
+   - **What it does:** Forces the browser to use HTTPS instead of HTTP for future communications.
+   - **Protects against:** Downgrade attacks and traffic interception.
+   - **Recommended configuration:** `max-age=31536000; includeSubDomains; preload`
+   - **Impact of absence:** Vulnerable to MITM attacks; possible interception of sensitive data.
 
 2. **Content-Security-Policy (CSP)**
-   - **O que faz:** Define quais recursos podem ser carregados e de onde
-   - **Proteção contra:** XSS, injeção de dados, clickjacking
-   - **Configuração recomendada:** Personalizada para cada aplicação, começando com `default-src 'self'`
-   - **Impacto da ausência:** Maior vulnerabilidade a ataques XSS e injeção de conteúdo malicioso
+   - **What it does:** Defines which graphical or code resources can be loaded and from where.
+   - **Protects against:** XSS, data injection, and clickjacking.
+   - **Recommended configuration:** Tailored for each application, starting with `default-src 'self'`.
+   - **Impact of absence:** Higher susceptibility to XSS and injection of malicious content.
 
-### Cabeçalhos de Alta Severidade
+### High Severity Headers
 
 3. **X-Content-Type-Options**
-   - **O que faz:** Impede que o navegador interprete arquivos como um tipo MIME diferente
-   - **Proteção contra:** MIME sniffing e ataques de injeção de conteúdo
-   - **Configuração recomendada:** `nosniff`
-   - **Impacto da ausência:** Arquivos podem ser interpretados incorretamente, levando a vulnerabilidades de segurança
+   - **What it does:** Stops the browser from "sniffing" files as a different MIME type.
+   - **Protects against:** MIME sniffing and content injection.
+   - **Recommended configuration:** `nosniff`
+   - **Impact of absence:** Files might be interpreted incorrectly, introducing security vulnerabilities.
 
 4. **X-Frame-Options**
-   - **O que faz:** Controla se o navegador pode renderizar a página em um `<frame>`, `<iframe>` ou `<object>`
-   - **Proteção contra:** Clickjacking
-   - **Configuração recomendada:** `DENY` ou `SAMEORIGIN`
-   - **Impacto da ausência:** Risco de ataques de clickjacking onde a página é carregada em um iframe invisível
+   - **What it does:** Controls if a browser can render the page inside a `<frame>`, `<iframe>` or `<object>`.
+   - **Protects against:** Clickjacking.
+   - **Recommended configuration:** `DENY` or `SAMEORIGIN`
+   - **Impact of absence:** Risk of clickjacking where a site is loaded into an invisible iframe overlay.
 
-### Cabeçalhos de Média Severidade
+### Medium Severity Headers
 
 5. **X-XSS-Protection**
-   - **O que faz:** Ativa filtros de XSS integrados em navegadores antigos
-   - **Proteção contra:** Alguns tipos de ataques XSS
-   - **Configuração recomendada:** `1; mode=block`
-   - **Nota:** Considerado legado em navegadores modernos, mas ainda útil para compatibilidade
+   - **What it does:** Turns on built-in XSS filters in legacy web browsers.
+   - **Protects against:** A subset of cross-site scripting attacks.
+   - **Recommended configuration:** `1; mode=block`
+   - **Note:** Considered legacy in modern browsers, but useful for compatibility margins.
 
 6. **Referrer-Policy**
-   - **O que faz:** Controla quanta informação de referência é incluída com requisições
-   - **Proteção contra:** Vazamento de informações entre origens
-   - **Configuração recomendada:** `strict-origin-when-cross-origin`
+   - **What it does:** Instructs how much referrer information is supplied with requests.
+   - **Protects against:** Unauthorised cross-origin information leakage.
+   - **Recommended configuration:** `strict-origin-when-cross-origin`
 
-7. **Permissions-Policy** (substitui Feature-Policy)
-   - **O que faz:** Permite ou bloqueia certas APIs do navegador e recursos
-   - **Proteção contra:** Abusos de recursos e rastreamento
-   - **Exemplo de configuração:** `camera=(), microphone=(), geolocation=()`
+7. **Permissions-Policy** (replaces Feature-Policy)
+   - **What it does:** Allows or denies specific browser capabilities and APIs (e.g. vibration, webcam).
+   - **Protects against:** Unauthorised device tracking and abuse of hardware.
+   - **Example configuration:** `camera=(), microphone=(), geolocation=()`
 
 8. **Cache-Control**
-   - **O que faz:** Determina como, onde e por quanto tempo as respostas são cacheadas
-   - **Proteção contra:** Vazamento de informações via cache
-   - **Configuração recomendada para dados sensíveis:** `no-store, max-age=0`
+   - **What it does:** Dictates how, where, and for how long downstream responses can be cached.
+   - **Protects against:** Data leakage via caching layers or local browsers.
+   - **Recommended configuration for sensitive data:** `no-store, max-age=0`
 
 9. **Access-Control-Allow-Origin**
-   - **O que faz:** Define quais origens podem acessar o recurso via CORS
-   - **Proteção contra:** Acesso não autorizado a recursos entre origens
-   - **Configuração recomendada:** Específica para o caso de uso, nunca `*` para APIs autenticadas
+   - **What it does:** Dictates which external origins can access the payload via CORS.
+   - **Protects against:** Unauthorised cross-origin data retrieval.
+   - **Recommended configuration:** Needs to be explicitly targeted; avoid `*` for authenticated APIs.
 
-### Cabeçalhos de Baixa Severidade
+### Low Severity Headers
 
 10. **Clear-Site-Data**
-    - **O que faz:** Instrui o navegador a limpar dados armazenados para o site
-    - **Proteção contra:** Persistência de dados sensíveis
-    - **Uso recomendado:** Em páginas de logout
+    - **What it does:** Clears locally retained site data (cookies, storage, cache).
+    - **Protects against:** Latent persistent sensitive data.
+    - **Recommended usage:** Primarily on logout endpoints.
 
 11. **Cross-Origin-Embedder-Policy**
-    - **O que faz:** Controla quais recursos podem ser carregados por documentos cross-origin
-    - **Proteção contra:** Vazamento de informações entre origens
-    - **Configuração recomendada:** `require-corp`
+    - **What it does:** Prevents cross-origin documents from loading embedded resources unless explicitly allowed.
+    - **Recommended configuration:** `require-corp`
 
 12. **Cross-Origin-Opener-Policy**
-    - **O que faz:** Isola o contexto de navegação do site
-    - **Proteção contra:** Ataques baseados em navegação entre janelas
-    - **Configuração recomendada:** `same-origin`
+    - **What it does:** Ensures an isolated browsing context from external windows and tabs.
+    - **Recommended configuration:** `same-origin`
 
 13. **Cross-Origin-Resource-Policy**
-    - **O que faz:** Previne que outros sites carreguem recursos diretamente
-    - **Proteção contra:** Vazamento de informações e ataques side-channel
-    - **Configuração recomendada:** `same-origin`
+    - **What it does:** Stops other domains from directly reading certain site resources.
+    - **Protects against:** Side-channel attacks (like Spectre).
+    - **Recommended configuration:** `same-origin`
 
-14. **Feature-Policy** (legado)
-    - **O que faz:** Versão anterior do Permissions-Policy
-    - **Proteção contra:** Os mesmos riscos cobertos pelo Permissions-Policy
-    - **Nota:** Mantido para compatibilidade, mas prefira usar Permissions-Policy
+14. **Feature-Policy** (legacy)
+    - **What it does:** Precursor to the modern `Permissions-Policy`.
+    - **Note:** Retain solely for backward compatibility with antiquated browser deployments.
 
 15. **Server**
-    - **O que faz:** Identifica o software do servidor
-    - **Proteção contra:** Revelar informações potencialmente sensíveis
-    - **Configuração recomendada:** Remover ou minimizar informações
+    - **What it does:** Outlines the software running the backend.
+    - **Protects against:** Exposing software versions to prospective attackers.
+    - **Recommended configuration:** Omit entirely, or strip versions down to a generic placeholder.
 
 16. **X-Powered-By**
-    - **O que faz:** Identifica a tecnologia de back-end
-    - **Proteção contra:** Revelar informações potencialmente sensíveis
-    - **Configuração recomendada:** Remover completamente
+    - **What it does:** Indicates backend scripting or framework technology.
+    - **Protects against:** Exposing structural framework vectors.
+    - **Recommended configuration:** Always remove entirely via reverse-proxy or code.
 
-## Interpretando os Resultados
+## Interpreting Results
 
-A ferramenta fornece uma pontuação de segurança baseada nos cabeçalhos encontrados e em sua importância. A pontuação é calculada considerando:
+The tool calculates a qualitative score scaled between `0` and `100` depending on the aggregation of specific headers and their individual importance. 
 
-- A presença do cabeçalho
-- A importância (severidade) do cabeçalho
-- Em alguns casos, a qualidade da configuração
+### Scoring Criteria:
+- **90-100**: Excellent security posture 
+- **70-89**: Good posture; although possessing minor oversights
+- **50-69**: Average setup, requiring immediate review
+- **30-49**: Insufficient configuration showing an elevated risk of breach
+- **0-29**: Critical configuration; demands immediate remediation
 
-### Pontuação:
-- **90-100**: Excelente configuração de segurança
-- **70-89**: Boa configuração, mas com espaço para melhorias
-- **50-69**: Configuração regular, precisa de atenção
-- **30-49**: Configuração insuficiente, risco de segurança aumentado
-- **0-29**: Configuração crítica, necessita intervenção imediata
+### Output Demonstration (Terminal)
 
-### Prova de Conceito Funcional
-
-O núcleo mínimo da funcionalidade está no seguinte fluxo:
-1. **Input do usuário** → Domínio, IP ou URL;
-2. **Validação** → Regex para domínio/IP ou verificação de prefixo HTTP/HTTPS;
-3. **Requisição GET** → Obtenção dos cabeçalhos da resposta;
-4. **Comparação** → Verifica se os cabeçalhos esperados estão presentes;
-5. **Output** → Mostra presentes/ausentes, pontuação e cabeçalhos extras.
-
-Exemplo de Execução:
-```
-> https://example.com
-
-[*] Conectando a https://example.com...
-[✓] Conexão estabelecida (HTTP 200)
-
-[*] Analisando cabeçalhos de segurança...
-
-CABEÇALHO                          ESTADO          SEVERIDADE VALOR
-Strict-Transport-Security         PRESENTE        Critical   max-age=31536000
-Content-Security-Policy           AUSENTE         Critical   -
-X-Content-Type-Options            PRESENTE        High       nosniff
-
-[*] Resumo da análise:
-Cabeçalhos presentes: 2 (66.7%)
-Cabeçalhos ausentes: 1 (33.3%)
-Pontuação de segurança: 66/100 👍 Bom
+The core validation cycle tests several endpoints implicitly and processes output asynchronously:
 
 ```
+[*] Alvo: https://example.com
+[*] Gerado em: 2026-02-20 17:00:00 UTC
 
-## Licença
+[✓] /                    HTTP 200
+[✓] /api                 HTTP 404
+[✓] /login               HTTP 404
 
-Este projeto está licenciado sob a Apache 2.0 - veja o arquivo LICENSE para detalhes.
+[*] Análise: /
+[*] Método: GET | Status: HTTP 200
+═════════════════════════════════════════════════════════════════════════════════════════════
+CABEÇALHO                           ESTADO          SEVERIDADE VALOR
+─────────────────────────────────────────────────────────────────────────────────────────────
+Strict-Transport-Security          PRESENTE        Critical   max-age=31536000
+Content-Security-Policy            AUSENTE         Critical   -
+X-Content-Type-Options             PRESENTE        High       nosniff...
 
-## Contribuições
+Cabeçalhos presentes: 2/16 (12.5%)
+Pontuação: 55/100  [!] Regular
+...
+```
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests com melhorias, correções de bugs ou novas funcionalidades.
+*(Note: Although the README is in English, the application's terminal interface currently retains its Portuguese localisation.)*
+
+## License
+
+This project is distributed under the Apache 2.0 License - see the LICENSE file for details.
+
+## Contributions
+
+Contributions are always welcome! Feel free to open issues or submit pull requests with improvements, bug fixes, or new features.
 
 ---
 
-Desenvolvido para a comunidade de segurança
+Developed for the security community.
