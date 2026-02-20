@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/had-nu/sec-headers-check/internal/checker"
-	"github.com/had-nu/sec-headers-check/internal/headers"
+	"github.com/had-nu/sec-headers-check/internal/mapper"
 	"github.com/had-nu/sec-headers-check/internal/output"
 )
 
@@ -79,6 +79,7 @@ func main() {
 	targetFlag := flag.String("target", "", "Domain, IP or full URL to scan")
 	formatFlag := flag.String("output", "terminal", "Output format: terminal | json | csv")
 	outFileFlag := flag.String("out", "", "Write output to file instead of stdout (optional)")
+	maxEndpointsFlag := flag.Int("max-endpoints", 15, "Maximum number of endpoints to map dynamically")
 	flag.Parse()
 
 	displayBanner()
@@ -88,12 +89,12 @@ func main() {
 
 	if target == "" {
 		// Interactive fallback when -target is not provided.
-		paths := make([]string, len(headers.Endpoints))
-		for i, ep := range headers.Endpoints {
-			paths[i] = ep.Path
+		paths := mapper.CommonPaths
+		if len(paths) > 5 {
+			paths = paths[:5]
 		}
 		fmt.Println("\nDigite o domínio base a ser verificado (ex: exemplo.com):")
-		fmt.Printf("%sEndpoints: %s%s\n", colorBlue, strings.Join(paths, ", "), colorReset)
+		fmt.Printf("%sDiscovery endpoints base: %s%s\n", colorBlue, strings.Join(paths, ", "), colorReset)
 		fmt.Print(colorCyan + "> " + colorReset)
 
 		reader := bufio.NewReader(os.Stdin)
@@ -141,10 +142,13 @@ func main() {
 	defer stop()
 
 	// ── Run scan ──────────────────────────────────────────────────────────────
-	fmt.Printf("%s[*] Iniciando verificação concorrente (%d endpoints)...%s\n\n",
-		colorCyan, len(headers.Endpoints), colorReset)
+	fmt.Printf("%s[*] Mapeando endpoints dinamicamente...%s\n", colorCyan, colorReset)
+	endpoints := mapper.MapEndpoints(ctx, normalisedTarget, *maxEndpointsFlag)
 
-	rawResults := checker.CheckAll(ctx, normalisedTarget)
+	fmt.Printf("%s[*] Iniciando verificação concorrente (%d endpoints descobertos)...%s\n\n",
+		colorCyan, len(endpoints), colorReset)
+
+	rawResults := checker.CheckAll(ctx, normalisedTarget, endpoints)
 	report := output.Build(normalisedTarget, rawResults)
 
 	// ── Emit output ───────────────────────────────────────────────────────────

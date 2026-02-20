@@ -75,13 +75,13 @@ func checkEndpoint(ctx context.Context, client *http.Client, baseURL string, ep 
 	}
 }
 
-func CheckAll(ctx context.Context, baseURL string) []EndpointResult {
+func CheckAll(ctx context.Context, baseURL string, endpoints []headers.Endpoint) []EndpointResult {
 	client := newHTTPClient()
 
-	resultsCh := make(chan EndpointResult, len(headers.Endpoints))
+	resultsCh := make(chan EndpointResult, len(endpoints))
 
 	var wg sync.WaitGroup
-	for _, ep := range headers.Endpoints {
+	for _, ep := range endpoints {
 		wg.Add(1)
 		go func(ep headers.Endpoint) {
 			defer wg.Done()
@@ -95,7 +95,7 @@ func CheckAll(ctx context.Context, baseURL string) []EndpointResult {
 		close(resultsCh)
 	}()
 
-	results := make([]EndpointResult, 0, len(headers.Endpoints))
+	results := make([]EndpointResult, 0, len(endpoints))
 	for r := range resultsCh {
 		results = append(results, r)
 	}
